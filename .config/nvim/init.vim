@@ -26,9 +26,10 @@ call plug#end()
 
 " neovim settings
 set nocompatible
-set background=dark " Solarized theme
-let g:neosolarized_contrast = "high"
-colorscheme NeoSolarized
+"set background=dark " Solarized theme
+"let g:neosolarized_contrast = "high"
+"colorscheme NeoSolarized
+colorscheme onedark
 syntax enable                           " Enables syntax highlighing
 set backspace=indent,eol,start
 set noswapfile
@@ -118,6 +119,32 @@ nnoremap <C-H> <C-W><C-H>
 " Tab management
 nnoremap H gT
 nnoremap L gt
+" accept autocomplete
+"inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+
+" Make <CR> to accept selected completion item or notify coc.nvim to format
+" <C-g>u breaks current undo, please make your own choice
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+
+" Use <c-space> to trigger completion
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
+else
+  inoremap <silent><expr> <c-@> coc#refresh()
+endif
 
 " Experimental stuf
 command! -nargs=0 Prettier :CocCommand prettier.formatFile
