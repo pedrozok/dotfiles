@@ -108,7 +108,7 @@ nnoremap <C-n> :NERDTree<CR>
 nnoremap <C-t> :NERDTreeToggle<CR>
 nnoremap <C-f> :NERDTreeFind<CR>
 " File searching/browsing
-nmap <C-p> :FZF<CR>
+nmap <C-p> :GFiles<CR>
 nnoremap <c-g> :Rg<cr>
 " Window splitting shortcuts
 " Navigate splits with ctrl-(j/k/l/h)
