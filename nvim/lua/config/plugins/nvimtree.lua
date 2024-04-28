@@ -11,6 +11,11 @@ return {
     vim.opt.termguicolors = true
     require("nvim-tree").setup()
     -- toggle tree
-    vim.keymap.set('n', '<C-f>', ':NvimTreeToggle<CR>')
+    vim.keymap.set('n', '<C-f>', function()
+      if (api.tree.is_visible()) then
+        return ':NvimTreeToggle<CR>'
+      end
+      return ':NvimTreeFindFile<CR>'
+    end, { expr = true })
   end
 }
