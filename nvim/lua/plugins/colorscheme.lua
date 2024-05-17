@@ -18,9 +18,10 @@ return {
     config = function()
       -- set a warmer theme at night
       local time = tonumber(os.date("%H"))
+      local theme = "dark"
+
       require("onedark").setup({
-        -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
-        style = (time > 20 and "warm" or "cool"),
+        style = (time > 20 and "warm" or theme), -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
       })
       require("onedark").load()
     end,
