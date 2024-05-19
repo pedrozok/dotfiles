@@ -1,3 +1,5 @@
+local force_light_theme = os.getenv("FORCE_LIGHT_THEME")
+
 return {
   { "ellisonleao/gruvbox.nvim" },
   {
@@ -17,11 +19,17 @@ return {
     opts = {},
     config = function()
       -- set a warmer theme at night
-      local time = tonumber(os.date("%H"))
-      local theme = "dark"
+      local hour = tonumber(os.date("%H"))
+      local default_theme = "dark"
+      -- possible styles: 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
+      local theme = (hour > 20 and "warm" or default_theme)
+
+      if force_light_theme == "true" then
+        theme = "light"
+      end
 
       require("onedark").setup({
-        style = (time > 20 and "warm" or theme), -- 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
+        style = theme,
       })
       require("onedark").load()
     end,
