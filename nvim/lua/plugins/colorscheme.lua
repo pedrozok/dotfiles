@@ -15,7 +15,7 @@ return {
   },
   {
     "navarasu/onedark.nvim",
-    enabled = false,
+    enabled = true,
     lazy = false,
     priority = 1000,
     opts = {},
@@ -47,6 +47,7 @@ return {
   },
   {
     "NTBBloodbath/doom-one.nvim",
+    enabled = false,
     config = function()
       -- Add color to cursor
       vim.g.doom_one_cursor_coloring = false
