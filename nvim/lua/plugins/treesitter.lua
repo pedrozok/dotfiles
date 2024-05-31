@@ -20,6 +20,7 @@ return {
         "svelte",
         "typescript",
         "tsx",
+        "clojure",
       },
 
       config = function(_, opts)
