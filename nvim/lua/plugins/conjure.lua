@@ -23,10 +23,11 @@ return {
     config = function(_, opts)
       require("conjure.main").main()
       require("conjure.mapping")["on-filetype"]()
+
+      vim.g.maplocalleader = ","
     end,
     init = function()
       vim.g["conjure#debug"] = true
-      vim.g.maplocalleader = ","
     end,
   },
 }
