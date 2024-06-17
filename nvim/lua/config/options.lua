@@ -3,4 +3,3 @@ local keymap_set = vim.keymap.set
 
 -- disable swap file
 vim.opt.swapfile = false
-vim.opt.relativenumber = false
