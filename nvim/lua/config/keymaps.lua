@@ -4,10 +4,10 @@ local opts = {
   silent = true,
 }
 -- panel navigation
-keymap.set("n", "<C-J>", "<C-W><C-J>")
-keymap.set("n", "<C-K>", "<C-W><C-K>")
-keymap.set("n", "<C-L>", "<C-W><C-L>")
-keymap.set("n", "<C-H>", "<C-W><C-H>")
+-- keymap.set("n", "<C-J>", "<C-W><C-J>")
+-- keymap.set("n", "<C-K>", "<C-W><C-K>")
+-- keymap.set("n", "<C-L>", "<C-W><C-L>")
+-- keymap.set("n", "<C-H>", "<C-W><C-H>")
 
 keymap.set("n", "<Esc><Esc>", ":w<CR>")
 
