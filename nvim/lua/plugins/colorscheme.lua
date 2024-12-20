@@ -15,7 +15,7 @@ return {
   },
   {
     "navarasu/onedark.nvim",
-    enabled = true,
+    enabled = false,
     lazy = false,
     priority = 1000,
     opts = {},
@@ -79,6 +79,20 @@ return {
       vim.g.doom_one_plugin_vim_illuminate = true
       vim.g.doom_one_plugin_lspsaga = false
       vim.cmd([[colorscheme doom-one]])
+    end,
+  },
+  {
+    "maxmx03/solarized.nvim",
+    enabled = true,
+    lazy = false,
+    priority = 1000,
+    ---@type solarized.config
+    opts = {},
+    config = function(_, opts)
+      vim.o.termguicolors = true
+      vim.o.background = "dark"
+      require("solarized").setup(opts)
+      vim.cmd.colorscheme("solarized")
     end,
   },
 }
