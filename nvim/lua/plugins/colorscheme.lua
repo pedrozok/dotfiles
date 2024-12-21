@@ -82,17 +82,15 @@ return {
     end,
   },
   {
-    "maxmx03/solarized.nvim",
+    "craftzdog/solarized-osaka.nvim",
     enabled = true,
     lazy = false,
     priority = 1000,
-    ---@type solarized.config
-    opts = {},
-    config = function(_, opts)
-      vim.o.termguicolors = true
-      vim.o.background = "dark"
-      require("solarized").setup(opts)
-      vim.cmd.colorscheme("solarized")
-    end,
+    opts = {
+      styles = {
+        sidebars = "transparent",
+        floats = "transparent",
+      },
+    },
   },
 }
