@@ -24,6 +24,8 @@ return {
         "pyright",
         "ruff",
         "ruff-lsp",
+        -- Assembly
+        "asm-lsp",
       })
     end,
   },
