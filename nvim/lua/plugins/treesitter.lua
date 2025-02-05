@@ -19,6 +19,7 @@ return {
         "clojure",
         "python",
         "bash",
+        "prisma",
       },
 
       config = function(_, opts)

@@ -26,6 +26,8 @@ return {
         "ruff-lsp",
         -- Assembly
         "asm-lsp",
+        -- prisma
+        "prisma-language-server",
       })
     end,
   },
