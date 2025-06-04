@@ -20,6 +20,8 @@ return {
         "python",
         "bash",
         "prisma",
+        "markdown",
+        "markdown_inline",
       },
 
       config = function(_, opts)
