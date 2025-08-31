@@ -1,3 +1,8 @@
 keybind = super+right=next_tab
 keybind = super+left=previous_tab
+theme = catppuccin-frappe
 
+font-family="MonoLisa Variable"
+font-size=14
+font-feature=-liga
+font-thicken=true
