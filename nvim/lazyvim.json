@@ -1,11 +1,20 @@
 {
   "extras": [
-
+    "lazyvim.plugins.extras.formatting.prettier",
+    "lazyvim.plugins.extras.lang.json",
+    "lazyvim.plugins.extras.lang.prisma",
+    "lazyvim.plugins.extras.lang.python",
+    "lazyvim.plugins.extras.lang.tailwind",
+    "lazyvim.plugins.extras.lang.terraform",
+    "lazyvim.plugins.extras.lang.typescript",
+    "lazyvim.plugins.extras.linting.eslint",
+    "lazyvim.plugins.extras.util.dot",
+    "lazyvim.plugins.extras.util.mini-hipatterns"
   ],
-  "install_version": 7,
+  "install_version": 8,
   "news": {
-    "NEWS.md": "10960",
-    "doc/news.txt": "25127"
+    "NEWS.md": "11866",
+    "doc/news.txt": "25446"
   },
   "version": 8
 }
