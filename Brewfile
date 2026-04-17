@@ -38,17 +38,3 @@ brew "tmux"
 brew "tree-sitter-cli"
 # Tracks most-used directories to make cd smarter
 brew "z"
-
-# ─── VS Code extensions ─────────────────────────────────────────────────────
-vscode "anthropic.claude-code"
-vscode "bradlc.vscode-tailwindcss"
-vscode "dbaeumer.vscode-eslint"
-vscode "eamodio.gitlens"
-vscode "enkia.tokyo-night"
-vscode "esbenp.prettier-vscode"
-vscode "github.copilot-chat"
-vscode "ms-azuretools.vscode-containers"
-vscode "ms-vscode-remote.remote-containers"
-vscode "ms-vscode-remote.remote-wsl"
-vscode "sherloach.solarized-osaka"
-vscode "vscodevim.vim"
