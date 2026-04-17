@@ -1,0 +1,16 @@
+# theme
+theme = Catppuccin Frappe
+
+# font
+font-family = "MonoLisa Variable"
+font-size = 14
+font-feature = -liga
+font-thicken = true
+
+# keybinds
+keybind = super+right=next_tab
+keybind = super+left=previous_tab
+
+# macOS ergonomics
+macos-option-as-alt = true
+confirm-close-surface = false
