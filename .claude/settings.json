@@ -11,9 +11,10 @@
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)",
       "Bash(git fetch:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
@@ -36,13 +37,26 @@
       "Bash(cat ~/.aws/config)",
       "Bash(cat ~/.config/gh/hosts.yml)",
       "Bash(cat ~/.netrc)",
-      "Bash(cat ~/.npmrc)"
-    ]
+      "Bash(cat ~/.npmrc)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore --staged:*)",
+      "Bash(git stash:*)",
+      "Bash(git rebase:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git revert:*)",
+      "Bash(git merge:*)",
+      "Bash(git am:*)"
+    ],
+    "defaultMode": "auto"
   },
-  "alwaysThinkingEnabled": true,
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline-command.sh",
     "padding": 0
-  }
+  },
+  "alwaysThinkingEnabled": true,
+  "skipAutoPermissionPrompt": true
 }
