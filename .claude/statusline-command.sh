@@ -3,6 +3,11 @@ input=$(cat)
 
 model=$(echo "$input" | jq -r '.model.display_name // "Unknown Model"')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
+used_tokens=$(echo "$input" | jq -r '
+  (.context_window.current_usage.input_tokens // 0) +
+  (.context_window.current_usage.cache_creation_input_tokens // 0) +
+  (.context_window.current_usage.cache_read_input_tokens // 0)
+')
 worktree=$(echo "$input" | jq -r '.worktree.name // empty')
 current_dir=$(echo "$input" | jq -r '.worktree.original_cwd // empty')
 rl_5h_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' | awk '{printf "%.0f", $1}')
@@ -14,6 +19,16 @@ if [ -n "$used" ]; then
   used_display=$(printf "%.0f" "$used")
 else
   used_display=0
+fi
+
+if [ -n "$used_tokens" ] && [ "$used_tokens" -gt 0 ]; then
+  if [ "$used_tokens" -ge 1000 ]; then
+    tokens_display=$(awk -v t="$used_tokens" 'BEGIN { printf "%.0fk", t/1000 }')
+  else
+    tokens_display="${used_tokens}"
+  fi
+else
+  tokens_display=""
 fi
 
 if [ -n "$worktree" ]; then
@@ -88,7 +103,11 @@ else
   ctx_color="$GREEN"
 fi
 ctx_bar=$(make_bar "$used_display")
-usage_str=$(printf "${ctx_color}${ctx_bar} ${used_display}%%${RESET}")
+if [ -n "$tokens_display" ]; then
+  usage_str=$(printf "${ctx_color}${ctx_bar} ${used_display}%% (${tokens_display})${RESET}")
+else
+  usage_str=$(printf "${ctx_color}${ctx_bar} ${used_display}%%${RESET}")
+fi
 
 repo_root=$(cd "$current_dir" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null || echo "$current_dir")
 dir_display=$(basename "$repo_root")
