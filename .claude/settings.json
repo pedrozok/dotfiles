@@ -58,5 +58,6 @@
     "padding": 0
   },
   "alwaysThinkingEnabled": true,
+  "theme": "dark",
   "skipAutoPermissionPrompt": true
 }
