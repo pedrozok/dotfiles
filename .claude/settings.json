@@ -36,19 +36,7 @@
       "Bash(cat ~/.aws/credentials)",
       "Bash(cat ~/.aws/config)",
       "Bash(cat ~/.config/gh/hosts.yml)",
-      "Bash(cat ~/.netrc)",
-      "Bash(cat ~/.npmrc)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git reset:*)",
-      "Bash(git restore --staged:*)",
-      "Bash(git stash:*)",
-      "Bash(git rebase:*)",
-      "Bash(git cherry-pick:*)",
-      "Bash(git revert:*)",
-      "Bash(git merge:*)",
-      "Bash(git am:*)"
+      "Bash(cat ~/.netrc)"
     ],
     "defaultMode": "auto"
   },
@@ -59,5 +47,6 @@
   },
   "alwaysThinkingEnabled": true,
   "theme": "dark",
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "effortLevel": "xhigh"
 }
