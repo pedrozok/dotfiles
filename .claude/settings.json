@@ -1,5 +1,31 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh search issues:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh label list:*)",
+      "Bash(gh label create:*)",
+      "Bash(gh label edit:*)",
+      "Bash(git log:*)",
+      "Bash(git blame:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git status:*)",
+      "Bash(git ls-files:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx playwright test:*)",
+      "Write(/tmp/**)",
+      "mcp__github"
+    ],
     "deny": [
       "Bash(cat .env)",
       "Bash(cat .env.local)",
@@ -9,7 +35,9 @@
       "Bash(cat ~/.aws/credentials)",
       "Bash(cat ~/.aws/config)",
       "Bash(cat ~/.config/gh/hosts.yml)",
-      "Bash(cat ~/.netrc)"
+      "Bash(cat ~/.netrc)",
+      "Bash(gh secret:*)",
+      "Bash(gh auth token:*)"
     ],
     "defaultMode": "auto"
   },

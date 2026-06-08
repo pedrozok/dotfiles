@@ -54,24 +54,12 @@ link() {
   printf '  link    %s -> %s\n' "$dest" "$src"
 }
 
-link_tree() {
-  # Link every file in $1 into $2, keeping filenames. New files added to the
-  # source dir get picked up automatically on the next run.
-  src_dir="$1"
-  dest_dir="$2"
-  [ -d "$src_dir" ] || return 0
-  for src in "$src_dir"/*; do
-    [ -e "$src" ] || continue
-    link "$src" "$dest_dir/$(basename "$src")"
-  done
-}
-
 # Check managed locations for symlinks that point into $DOTFILES but no longer
 # resolve — these are usually files that were renamed or removed in the repo.
 prune_stale() {
   # Directories we own symlinks in.
   found=0
-  for dir in "$HOME" "$HOME/.config/ghostty" "$HOME/.claude" "$HOME/.claude/commands" "$HOME/.claude/skills"; do
+  for dir in "$HOME" "$HOME/.config/ghostty" "$HOME/.claude"; do
     [ -d "$dir" ] || continue
     # -maxdepth 1 to avoid crossing into the repo via the dir symlinks.
     for entry in $(find "$dir" -maxdepth 1 -type l 2>/dev/null); do
@@ -98,8 +86,12 @@ link "$DOTFILES/ghostty/config" "$HOME/.config/ghostty/config"
 link "$DOTFILES/.claude/settings.json" "$HOME/.claude/settings.json"
 link "$DOTFILES/.claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 
-link_tree "$DOTFILES/.claude/commands" "$HOME/.claude/commands"
-link_tree "$DOTFILES/.claude/skills" "$HOME/.claude/skills"
+# Whole-directory symlinks for the repo-owned Claude config dirs: the dir itself
+# is the link, so files added to the repo later appear in ~/.claude with no
+# re-run. (agent-memory is left out — it's per-project runtime state, not config.)
+for d in skills agents commands; do
+  [ -d "$DOTFILES/.claude/$d" ] && link "$DOTFILES/.claude/$d" "$HOME/.claude/$d"
+done
 
 setup_git_identity() {
   local_path="$HOME/.gitconfig.local"
