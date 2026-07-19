@@ -1,0 +1,4 @@
+interface:
+  display_name: "Triage"
+  short_description: "Turn backlog items into reviewed plans"
+  default_prompt: "Use $triage to analyze and review the need-triage queue."

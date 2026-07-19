@@ -1,0 +1,36 @@
+# Template seeded into ~/.codex/config.toml once, then owned by the live
+# machine - Codex writes trust levels, marketplaces, plugin and hook state
+# into it. Keep this file free of machine state: no absolute paths, no
+# [projects] trust entries, no hashes.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+service_tier = "default"
+personality = "pragmatic"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+default_permissions = "personal"
+
+[permissions.personal.filesystem]
+glob_scan_max_depth = 8
+":minimal" = "read"
+":root" = "read"
+":tmpdir" = "write"
+":slash_tmp" = "write"
+"~/.ssh" = "deny"
+"~/.aws" = "deny"
+"~/.netrc" = "deny"
+"~/.config/gh/hosts.yml" = "deny"
+
+[permissions.personal.filesystem.":workspace_roots"]
+"." = "write"
+".env" = "deny"
+".env.*" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+
+[features]
+js_repl = false
+
+[tui]
+status_line = ["model-with-reasoning", "project-name", "git-branch", "approval-mode", "context-remaining", "five-hour-limit", "weekly-limit"]
+status_line_use_colors = true

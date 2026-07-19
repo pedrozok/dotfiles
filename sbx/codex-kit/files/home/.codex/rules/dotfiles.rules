@@ -1,0 +1,44 @@
+# Rules apply only when Codex requests execution outside the active sandbox.
+# Local build and test commands should stay sandboxed; dependency installs and
+# other commands that need broader access remain interactive.
+
+# Package managers, task runners, language toolchains, tests, and linters.
+prefix_rule(pattern=["npm", ["run", "ci", "install", "test"]], decision="prompt", justification="Run this outside the sandbox only after reviewing why broader access is needed.")
+prefix_rule(pattern=[["pnpm", "yarn", "bun", "npx", "make", "just"]], decision="prompt", justification="Run this outside the sandbox only after reviewing why broader access is needed.")
+prefix_rule(pattern=[["cargo", "go", "pytest", "ruff", "mypy", "gradle", "./gradlew", "mvn", "poetry", "uv", "dotnet", "tox", "rake", "shellcheck", "shfmt", "bats", "stylua", "luacheck"]], decision="prompt", justification="Run this outside the sandbox only after reviewing why broader access is needed.")
+prefix_rule(pattern=["python", "-m", ["pytest", "unittest", "pip"]], decision="prompt", justification="Run this outside the sandbox only after reviewing why broader access is needed.")
+prefix_rule(pattern=["bundle", ["exec", "install"]], decision="prompt", justification="Run this outside the sandbox only after reviewing why broader access is needed.")
+prefix_rule(pattern=[["pip", "pip3"], "install"], decision="prompt", justification="Dependency installation requires approval outside the sandbox.")
+
+# Read-only Git commands are safe outside the sandbox.
+prefix_rule(
+    pattern=["git", ["log", "blame", "diff", "show", "status", "ls-files"]],
+    decision="allow",
+    match=["git status", "git diff --stat", "git show HEAD"],
+    not_match=["git reset --hard"],
+)
+
+# These mutations are used by the explicit ship workflow. Force pushes stay
+# forbidden by the rules below; on the host the guard hook additionally blocks
+# identity overrides and prohibited attribution (hooks do not ship into
+# sandboxes - AGENTS.md carries those rules there).
+prefix_rule(
+    pattern=["git", ["checkout", "switch", "branch", "worktree", "add", "commit", "push", "fetch", "restore", "stash", "merge"]],
+    decision="allow",
+    match=["git switch -c ship/123-fix", "git commit -m msg", "git push origin HEAD"],
+    not_match=["git reset --hard"],
+)
+prefix_rule(pattern=["git", "push", "--force"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
+prefix_rule(pattern=["git", "push", "--force-with-lease"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
+prefix_rule(pattern=["git", "push", "-f"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
+prefix_rule(pattern=["git", "commit", "--author"], decision="forbidden", justification="Use the configured human Git identity without overrides.")
+prefix_rule(pattern=["git", "-c", ["user.name", "user.email"]], decision="forbidden", justification="Use the configured human Git identity without overrides.")
+
+# GitHub reads and the explicit triage/ship workflow operations.
+prefix_rule(pattern=["gh", "pr", ["create", "edit", "view", "list", "diff", "checks", "status", "comment", "review"]], decision="allow")
+prefix_rule(pattern=["gh", "issue", ["comment", "list", "view", "edit"]], decision="allow")
+prefix_rule(pattern=["gh", "search", "issues"], decision="allow")
+prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
+prefix_rule(pattern=["gh", "label", ["list", "create", "edit"]], decision="allow")
+prefix_rule(pattern=["gh", "secret"], decision="forbidden", justification="Manage repository secrets by hand.")
+prefix_rule(pattern=["gh", "auth", "token"], decision="forbidden", justification="Use authenticated tools without exposing credential material.")
