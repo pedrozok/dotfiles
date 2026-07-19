@@ -1,0 +1,30 @@
+# Docker Sandboxes kit that ships my Codex CLI config into a sandbox.
+# Canonical copies live under files/home; install.sh and codex/install.sh
+# symlink the host's ~/.codex and ~/.agents to them, so this tree is the
+# single source of truth. Everything in here must be a real file - symlinks
+# do not resolve inside the microVM. Skills read ../../references/trackers.md
+# relative to their own directory, which is why references/ sits next to
+# skills/ under .agents.
+schemaVersion: "1"
+kind: mixin
+name: codex-kit
+displayName: Codex CLI config
+description: Personal Codex CLI AGENTS.md, agents, skills, and command rules.
+
+# hooks.json and hooks/ are left out on purpose. The PreToolUse hook runs a
+# shell command with the agent's privileges, and an agent inside the sandbox
+# can rewrite ~/.codex/hooks.json to hook arbitrary commands into every tool
+# call - a persistence mechanism. The host's full config.toml is also left out:
+# it is machine state (absolute /Users paths, project trust levels, plugin
+# marketplaces, the trusted-hook hash), not portable config, and stays in
+# codex/. files/home/.codex/config.toml ships only the portable filesystem
+# permission profile, so a codex sandbox keeps the host's .env / secret-file
+# deny rules instead of running with no profile at all.
+#
+# Opt in to the hooks only if you accept that, by materializing them into the
+# kit tree:
+#
+#   cp ../../codex/hooks.json files/home/.codex/hooks.json
+#   cp -R ../../codex/hooks files/home/.codex/hooks
+#
+# Then recreate existing sandboxes (sbx rm <name>) to pick it up.

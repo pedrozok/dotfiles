@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship"
+  short_description: "Implement and review ready tickets"
+  default_prompt: "Use $ship to implement and review the ready-for-dev queue."

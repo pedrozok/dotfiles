@@ -1,0 +1,110 @@
+#!/bin/sh
+# Run an agent CLI in the Docker Sandbox for the current project. Invoked as
+# sbx-claude or sbx-codex (symlinks to this script); the invoked name picks
+# the agent and its kit.
+#
+# Derives the sandbox name from the current directory (<agent>-<project>),
+# creates the sandbox on first run with this repo's kit, and attaches with
+# `sbx run`. Re-runs reattach to the existing sandbox; kit changes only reach
+# a sandbox after `sbx rm <name>` and a fresh run.
+#
+# Usage:
+#     sbx-claude | sbx-codex            create-or-attach for the current directory
+#     sbx-claude --name                 print the derived sandbox name and exit
+
+set -eu
+
+case "$(basename "$0")" in
+sbx-claude) agent=claude ;;
+sbx-codex) agent=codex ;;
+*)
+  printf 'run this as sbx-claude or sbx-codex, not %s\n' "$(basename "$0")" >&2
+  exit 2
+  ;;
+esac
+
+# $0 may be a symlink into PATH; the kit path must resolve to the repo.
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case "$target" in
+  /*) self=$target ;;
+  *) self="$(dirname "$self")/$target" ;;
+  esac
+done
+repo="$(cd "$(dirname "$self")/.." && pwd -P)"
+kit="$repo/sbx/$agent-kit"
+
+project=$(basename "$(pwd -P)" | tr '[:upper:]' '[:lower:]' \
+  | sed -e 's/[^a-z0-9]/-/g' -e 's/--*/-/g' -e 's/^-*//' -e 's/-*$//')
+[ -n "$project" ] || project=root
+name="$agent-$project"
+
+if [ "${1:-}" = "--name" ]; then
+  printf '%s\n' "$name"
+  exit 0
+fi
+
+if ! command -v sbx >/dev/null 2>&1; then
+  printf 'sbx not found. Install Docker Sandboxes first: https://docs.docker.com/ai/sandboxes/\n' >&2
+  exit 1
+fi
+
+# The workspace bind mount shares the project's .git with the sandbox, and the
+# sandbox never sees ~/.gitconfig.local - so commits made inside it would carry
+# the sandbox's default identity. Seed the host identity into the repo-local
+# config once; a project that already sets its own identity is left alone.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  for key in user.name user.email; do
+    git config --local "$key" >/dev/null 2>&1 && continue
+    value=$(git config "$key" 2>/dev/null) || continue
+    git config --local "$key" "$value"
+    printf 'git    %s = %s (repo-local, so in-sandbox commits are yours)\n' "$key" "$value"
+  done
+fi
+
+# Share the host's screenshots with the agent as a read-only extra workspace,
+# mounted at the same absolute path inside the microVM. Passed on every run:
+# harmless on reattach, and skipped entirely when the folder does not exist.
+screenshots=$HOME/Screenshots
+if [ -d "$screenshots" ]; then
+  printf 'Sharing %s with the sandbox (read-only)\n' "$screenshots"
+else
+  screenshots=""
+fi
+
+# Exact match on the name column: grep -qw treats - as a word boundary, so
+# claude-app would falsely match an existing claude-app-api.
+sandbox_exists() {
+  sbx ls 2>/dev/null | awk -v n="$name" '$1 == n { found = 1 } END { exit found ? 0 : 1 }'
+}
+
+if sandbox_exists; then
+  printf 'Reattaching to %s (config baked at creation; sbx rm %s to pick up kit changes)\n' "$name" "$name"
+  exec sbx run "$agent" --name "$name" . ${screenshots:+"$screenshots:ro"}
+fi
+
+if sbx run --help 2>&1 | grep -q -- '--kit'; then
+  printf 'Creating %s with kit %s\n' "$name" "$kit"
+  exec sbx run "$agent" --name "$name" --kit "$kit" . ${screenshots:+"$screenshots:ro"}
+fi
+
+# Older sbx without kit support: land the config through the workspace bind
+# mount, since host paths outside the workspace do not exist inside the microVM.
+stage=.sbx-$agent
+printf 'sbx has no --kit support; staging config into %s/ (gitignore it)\n' "$stage"
+rm -rf "$stage"
+mkdir -p "$stage"
+cp -R "$kit/files/home" "$stage/home"
+cat >"$stage/apply.sh" <<'EOF'
+#!/bin/sh
+# Run inside the sandbox: install the staged config into the home directory.
+set -eu
+stage="$(cd "$(dirname "$0")" && pwd -P)"
+cp -R "$stage/home/." "$HOME/"
+echo "Installed staged config into $HOME"
+EOF
+chmod +x "$stage/apply.sh"
+
+printf 'Once attached, run from the workspace root: sh %s/apply.sh\n' "$stage"
+exec sbx run "$agent" --name "$name" . ${screenshots:+"$screenshots:ro"}

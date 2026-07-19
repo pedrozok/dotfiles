@@ -1,0 +1,29 @@
+# Docker Sandboxes kit that ships my Claude Code config into a sandbox.
+# Canonical copies live under files/home/.claude; install.sh symlinks the
+# host's ~/.claude to them, so this tree is the single source of truth.
+# Everything in here must be a real file - symlinks do not resolve inside
+# the microVM.
+schemaVersion: "1"
+kind: mixin
+name: claude-kit
+displayName: Claude Code config
+description: Personal Claude Code skills, agents, commands, and CLAUDE.md.
+
+# files/home/.claude/settings.json is the SANDBOX variant of the host's
+# .claude/settings.json: same permissions, attribution blanking, deny rules,
+# and statusline, but no hooks. Hooks are deliberately not shipped: they
+# execute shell commands with the agent's privileges on every tool call, so a
+# sandboxed agent that rewrites ~/.claude/settings.json gets a persistence
+# mechanism that fires without the user doing anything. Keep permission
+# changes in sync between the two files by hand.
+#
+# The statusline is shipped: it only runs when the TUI renders, and it reads
+# the harness JSON on stdin rather than gating tool calls.
+#
+# Opt in to hooks only if you accept that, by materializing the host files
+# into the kit tree (the hook matchers reference hooks/guard.sh):
+#
+#   cp ../../.claude/settings.json files/home/.claude/settings.json
+#   cp -R ../../.claude/hooks files/home/.claude/hooks
+#
+# Then recreate existing sandboxes (sbx rm <name>) to pick it up.
