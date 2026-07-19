@@ -1,0 +1,67 @@
+#!/bin/sh
+# Run Claude Code against an Ollama cloud model. Invoked as claude-glm or
+# claude-kimi (symlinks to this script); the invoked name picks the model.
+#
+# The variables are set for this process only, so plain `claude` stays on the
+# Anthropic plan, while settings.json, hooks, CLAUDE.md and skills load as usual.
+# Needs the ollama CLI signed in (`ollama signin`). If no server answers on
+# localhost:11434 it starts `ollama serve` in the background and leaves it
+# running, since other sessions may share it; stop it with `pkill -x ollama`.
+#
+# Usage:
+#     claude-glm [claude args...]
+#     claude-kimi [claude args...]
+
+set -eu
+
+case "$(basename "$0")" in
+claude-glm) model=glm-5.3:cloud ;;
+claude-kimi) model=kimi-k3:cloud ;;
+*)
+  printf 'run this as claude-glm or claude-kimi, not %s\n' "$(basename "$0")" >&2
+  exit 2
+  ;;
+esac
+
+host=http://localhost:11434
+
+if ! curl -sf -m 1 "$host/api/version" >/dev/null; then
+  if ! command -v ollama >/dev/null 2>&1; then
+    printf 'ollama not found. Install the CLI first: brew install ollama\n' >&2
+    exit 1
+  fi
+  log="$HOME/.ollama/logs/serve.log"
+  mkdir -p "$(dirname "$log")"
+  printf 'Starting ollama serve (log: %s)\n' "$log" >&2
+  nohup ollama serve >>"$log" 2>&1 &
+  tries=0
+  until curl -sf -m 1 "$host/api/version" >/dev/null; do
+    tries=$((tries + 1))
+    if [ "$tries" -ge 50 ]; then
+      printf 'ollama serve did not answer on %s within 10s; see %s\n' "$host" "$log" >&2
+      exit 1
+    fi
+    sleep 0.2
+  done
+fi
+
+# Claude Code sends its background calls (summaries, titles) to the Haiku tier;
+# a small model keeps them off the main model's usage quota.
+fast=glm-5.3-flash:cloud
+
+export ANTHROPIC_BASE_URL="$host"
+export ANTHROPIC_AUTH_TOKEN=ollama
+export ANTHROPIC_API_KEY=
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$model"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$model"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$fast"
+export CLAUDE_CODE_SUBAGENT_MODEL="$model"
+
+# Ollama has no server-side auto-mode checks, so auto mode must use the local
+# classifier; the attribution header and error reports only make sense against
+# Anthropic. Same choices as `ollama launch claude`.
+export CLAUDE_CODE_AUTO_MODE_SERVER="${CLAUDE_CODE_AUTO_MODE_SERVER:-0}"
+export CLAUDE_CODE_ATTRIBUTION_HEADER=0
+export DISABLE_ERROR_REPORTING=1
+
+exec claude --model "$model" "$@"
