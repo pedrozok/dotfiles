@@ -146,6 +146,10 @@ Notes:
   attribution blanking, and deny rules still apply inside sandboxes; keep it
   in sync with the host copy in `.claude/`. Each kit's `spec.yaml` has the
   opt-in steps if you want hooks anyway.
+- If `~/Screenshots` exists on the host, the wrappers mount it into the
+  sandbox as a read-only extra workspace at the same path, so screenshots can
+  be referenced in prompts. It's passed on every run; a sandbox created before
+  the folder existed needs an `sbx rm <agent>-<project>` to pick it up.
 - Commits made inside a sandbox use the project repo's `.git/config`, which
   the sandbox shares through the workspace mount. The wrappers seed
   `user.name`/`user.email` into it from the host config on launch (skipped

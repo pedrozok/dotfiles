@@ -63,6 +63,16 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   done
 fi
 
+# Share the host's screenshots with the agent as a read-only extra workspace,
+# mounted at the same absolute path inside the microVM. Passed on every run:
+# harmless on reattach, and skipped entirely when the folder does not exist.
+screenshots=$HOME/Screenshots
+if [ -d "$screenshots" ]; then
+  printf 'Sharing %s with the sandbox (read-only)\n' "$screenshots"
+else
+  screenshots=""
+fi
+
 # Exact match on the name column: grep -qw treats - as a word boundary, so
 # claude-app would falsely match an existing claude-app-api.
 sandbox_exists() {
@@ -71,12 +81,12 @@ sandbox_exists() {
 
 if sandbox_exists; then
   printf 'Reattaching to %s (config baked at creation; sbx rm %s to pick up kit changes)\n' "$name" "$name"
-  exec sbx run "$agent" --name "$name" .
+  exec sbx run "$agent" --name "$name" . ${screenshots:+"$screenshots:ro"}
 fi
 
 if sbx run --help 2>&1 | grep -q -- '--kit'; then
   printf 'Creating %s with kit %s\n' "$name" "$kit"
-  exec sbx run "$agent" --name "$name" --kit "$kit" .
+  exec sbx run "$agent" --name "$name" --kit "$kit" . ${screenshots:+"$screenshots:ro"}
 fi
 
 # Older sbx without kit support: land the config through the workspace bind
@@ -97,4 +107,4 @@ EOF
 chmod +x "$stage/apply.sh"
 
 printf 'Once attached, run from the workspace root: sh %s/apply.sh\n' "$stage"
-exec sbx run "$agent" --name "$name" .
+exec sbx run "$agent" --name "$name" . ${screenshots:+"$screenshots:ro"}
