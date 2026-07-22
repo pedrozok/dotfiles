@@ -158,6 +158,21 @@ Notes:
 - On an sbx too old for `--kit`, the wrappers stage the config into
   `.sbx-claude/` / `.sbx-codex/` in the workspace and print the one command to
   apply it inside the sandbox. Gitignore those in projects where this runs.
+- Remote Control (`/remote-control`) fails inside sbx with a 403 transport
+  error on any network policy: the sandbox's forward proxy rewrites the
+  `Authorization` header to inject the real credential, which clobbers RC's
+  per-session scoped tokens ([docker/sbx-releases#8]). Until that's fixed
+  upstream, the claude kit ships `rc-claude` (in the sandbox's
+  `~/.local/bin`): it bootstraps [sbx-claude-code-rc-shim] - a mitmproxy
+  addon that sends only the RC scoped-token requests direct, keeping
+  everything else on the injecting proxy and all egress under sbx's network
+  policy - and launches claude through it. First run needs egress to
+  github.com and sudo (to trust the shim's CA); the shim is pinned to a
+  reviewed commit in `rc-claude`. Sandboxes created before the kit change
+  need an `sbx rm <agent>-<project>` to pick it up.
+
+[docker/sbx-releases#8]: https://github.com/docker/sbx-releases/issues/8
+[sbx-claude-code-rc-shim]: https://github.com/jrhender/sbx-claude-code-rc-shim
 
 ## Scripts
 

@@ -20,6 +20,12 @@ description: Personal Claude Code skills, agents, commands, and CLAUDE.md.
 # The statusline is shipped: it only runs when the TUI renders, and it reads
 # the harness JSON on stdin rather than gating tool calls.
 #
+# files/home/.local/bin/rc-claude makes Remote Control work inside the
+# sandbox: sbx's credential-injecting proxy clobbers RC's per-session scoped
+# tokens (docker/sbx-releases#8), so the helper bootstraps and routes claude
+# through jrhender/sbx-claude-code-rc-shim, pinned to a reviewed commit.
+# Launch with rc-claude instead of claude when you want /remote-control.
+#
 # Opt in to hooks only if you accept that, by materializing the host files
 # into the kit tree (the hook matchers reference hooks/guard.sh):
 #

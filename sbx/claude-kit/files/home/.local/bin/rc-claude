@@ -1,0 +1,69 @@
+#!/bin/sh
+# Claude Code with Remote Control working inside a Docker sbx sandbox.
+#
+# sbx's forward proxy rewrites the Authorization header on every request to
+# inject the real credential (the VM only holds a proxy-managed placeholder).
+# Remote Control's worker/event-stream endpoints authenticate with per-session
+# scoped tokens instead of the main OAuth, so the unconditional rewrite
+# clobbers them: worker registration 401s, the SSE stream 403s, and the status
+# line shows "Transport closed: server rejected connection (code 403)". See
+# docker/sbx-releases#8.
+#
+# This wrapper runs jrhender/sbx-claude-code-rc-shim: a mitmproxy addon that
+# keeps every flow on the injecting forward proxy except requests to the RC
+# scoped-token paths that already carry a real (non-placeholder) token - those
+# go direct. Direct egress still leaves the VM through sbx's transparent
+# proxy, so network policy is unchanged; only credential injection is skipped.
+#
+# First run clones the shim (needs egress to github.com) and runs its setup
+# (installs mitmproxy, sudo-appends its CA to the system bundle). Later runs
+# start the shim if it is not already up, then exec claude through it. Run
+# /remote-control inside the session as usual.
+set -eu
+
+SHIM_REPO=https://github.com/jrhender/sbx-claude-code-rc-shim
+# The shim sits between the agent and api.anthropic.com, so it is pinned to a
+# reviewed commit; bump only after re-reading the upstream diff.
+SHIM_COMMIT=b8b2112796133c42dc7dea11f72e5436ad6a7e44
+SHIM_DIR=$HOME/scoped-token-shim
+SHIM=${SHIM:-http://127.0.0.1:8080}
+
+# The gateway hostname only resolves inside an sbx VM; outside one, the shim
+# would route real API traffic into a black hole.
+if ! getent hosts gateway.docker.internal >/dev/null 2>&1; then
+  echo 'rc-claude runs inside a Docker sbx sandbox; use plain claude here' >&2
+  exit 1
+fi
+
+if [ ! -d "$SHIM_DIR" ]; then
+  git clone "$SHIM_REPO" "$SHIM_DIR"
+  git -C "$SHIM_DIR" checkout --quiet "$SHIM_COMMIT"
+fi
+
+# Upstream setup.sh installs mitmproxy with uv but skips the install when
+# mitmdump already exists; on a sandbox image without uv, satisfy that check
+# with whichever python installer is around.
+if ! command -v mitmdump >/dev/null 2>&1 && ! command -v uv >/dev/null 2>&1; then
+  if command -v pipx >/dev/null 2>&1; then
+    pipx install mitmproxy
+  else
+    python3 -m pip install --user mitmproxy 2>/dev/null ||
+      python3 -m pip install --user --break-system-packages mitmproxy
+  fi
+fi
+
+# Idempotent: skips the install when mitmdump exists and the CA append when
+# the bundle already carries the cert's fingerprint marker.
+"$SHIM_DIR/setup.sh"
+
+if ! curl -s -o /dev/null --max-time 2 "$SHIM"; then
+  nohup "$SHIM_DIR/run.sh" >"$SHIM_DIR/shim.out" 2>&1 &
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    curl -s -o /dev/null --max-time 1 "$SHIM" && break
+    sleep 1
+  done
+fi
+
+# rc-claude.sh re-checks the shim is listening, exports both cases of the
+# proxy vars (node prefers the lowercase ones), and execs claude.
+exec "$SHIM_DIR/rc-claude.sh" "$@"
