@@ -28,6 +28,9 @@ Temporary Items
 # Machine-local Claude Code state (per-project permission grants)
 .claude/settings.local.json
 
+# Skills claude.ai syncs into ~/.claude/skills, which links into the kit
+sbx/claude-kit/files/home/.claude/skills/synced/
+
 # Staging dirs the sbx wrappers create when run inside this repo
 .sbx-claude/
 .sbx-codex/

@@ -18,27 +18,42 @@ prefix_rule(
     not_match=["git reset --hard"],
 )
 
-# These mutations are used by the explicit ship workflow. Force pushes stay
-# forbidden by the rules below; on the host the guard hook additionally blocks
-# identity overrides and prohibited attribution (hooks do not ship into
-# sandboxes - AGENTS.md carries those rules there).
+# Local Git mutations stay inside the repo. Prefix rules only match leading
+# tokens in order, so they cannot see a flag further along the command: the
+# forbidden rules below catch the plain shapes only. The real gates are that
+# commits and pushes prompt, and on the host the guard hook blocks identity
+# overrides, force pushes, and attribution wherever they appear (hooks do not
+# ship into sandboxes - AGENTS.md carries those rules there).
 prefix_rule(
-    pattern=["git", ["checkout", "switch", "branch", "worktree", "add", "commit", "push", "fetch", "restore", "stash", "merge"]],
+    pattern=["git", ["checkout", "switch", "branch", "worktree", "add", "fetch", "restore", "stash", "merge"]],
     decision="allow",
-    match=["git switch -c ship/123-fix", "git commit -m msg", "git push origin HEAD"],
-    not_match=["git reset --hard"],
+    match=["git switch -c fix/123", "git add -A", "git fetch origin"],
+    not_match=["git reset --hard", "git push origin HEAD", "git commit -m msg"],
 )
+prefix_rule(pattern=["git", "commit"], decision="prompt", justification="Confirm the message and that the configured identity is used.")
 prefix_rule(pattern=["git", "push", "--force"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
 prefix_rule(pattern=["git", "push", "--force-with-lease"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
 prefix_rule(pattern=["git", "push", "-f"], decision="forbidden", justification="Force pushes are forbidden; create a new commit or branch instead.")
+prefix_rule(pattern=["git", "push"], decision="prompt", justification="Pushes leave the machine; confirm the branch and remote first, and that it is not a force push.")
 prefix_rule(pattern=["git", "commit", "--author"], decision="forbidden", justification="Use the configured human Git identity without overrides.")
 prefix_rule(pattern=["git", "-c", ["user.name", "user.email"]], decision="forbidden", justification="Use the configured human Git identity without overrides.")
 
-# GitHub reads and the explicit triage/ship workflow operations.
-prefix_rule(pattern=["gh", "pr", ["create", "edit", "view", "list", "diff", "checks", "status", "comment", "review"]], decision="allow")
-prefix_rule(pattern=["gh", "issue", ["comment", "list", "view", "edit"]], decision="allow")
+# GitHub reads are safe; writes that publish content prompt. `gh api` and
+# `gh -R/--repo` can reach any mutation, so they prompt too.
+prefix_rule(pattern=["gh", "pr", ["view", "list", "diff", "checks", "status"]], decision="allow")
+prefix_rule(pattern=["gh", "issue", ["list", "view"]], decision="allow")
 prefix_rule(pattern=["gh", "search", "issues"], decision="allow")
 prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
-prefix_rule(pattern=["gh", "label", ["list", "create", "edit"]], decision="allow")
+prefix_rule(pattern=["gh", "label", "list"], decision="allow")
+prefix_rule(pattern=["gh", "pr", ["create", "edit", "comment", "review", "ready", "merge"]], decision="prompt", justification="This publishes to GitHub; confirm the content first.")
+prefix_rule(pattern=["gh", "issue", ["create", "comment", "edit"]], decision="prompt", justification="This publishes to GitHub; confirm the content first.")
+prefix_rule(pattern=["gh", "api"], decision="prompt", justification="The REST API can reach any mutation; confirm what this call does.")
+prefix_rule(pattern=["gh", ["-R", "--repo"]], decision="prompt", justification="Confirm the target repository and the action.")
+
+# Credential material never passes through the agent.
 prefix_rule(pattern=["gh", "secret"], decision="forbidden", justification="Manage repository secrets by hand.")
 prefix_rule(pattern=["gh", "auth", "token"], decision="forbidden", justification="Use authenticated tools without exposing credential material.")
+prefix_rule(pattern=["gh", "auth", "status", "--show-token"], decision="forbidden", justification="Use authenticated tools without exposing credential material.")
+prefix_rule(pattern=["op", "document", "get"], decision="forbidden", justification="Secrets are injected by project scripts; never read them into the session.")
+prefix_rule(pattern=["op", "read"], decision="forbidden", justification="Secrets are injected by project scripts; never read them into the session.")
+prefix_rule(pattern=["op", "item", "get"], decision="forbidden", justification="Secrets are injected by project scripts; never read them into the session.")

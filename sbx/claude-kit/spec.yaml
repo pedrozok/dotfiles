@@ -7,7 +7,7 @@ schemaVersion: "1"
 kind: mixin
 name: claude-kit
 displayName: Claude Code config
-description: Personal Claude Code skills, agents, commands, and CLAUDE.md.
+description: Personal Claude Code skills and CLAUDE.md.
 
 # files/home/.claude/settings.json is the SANDBOX variant of the host's
 # .claude/settings.json: same permissions, attribution blanking, deny rules,

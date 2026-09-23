@@ -15,8 +15,8 @@ Everything installs by symlink from a single source of truth (this repo).
 | `nvim/` | Neovim - LazyVim + tokyonight-storm |
 | `ghostty/config` | Ghostty terminal |
 | `.claude/` | Claude Code, host-only - settings.json, hooks |
-| `sbx/claude-kit/` | Claude Code, shared - skills, agents, commands, CLAUDE.md, statusline as a Docker Sandboxes kit |
-| `sbx/codex-kit/` | Codex CLI, shared - AGENTS.md, agents, skills, command rules as a Docker Sandboxes kit |
+| `sbx/claude-kit/` | Claude Code, shared - skills, CLAUDE.md, statusline as a Docker Sandboxes kit |
+| `sbx/codex-kit/` | Codex CLI, shared - AGENTS.md, skills, command rules as a Docker Sandboxes kit |
 | `bin/` | `sbx-claude` and `sbx-codex`, wrappers that run an agent in a per-project Docker Sandbox |
 | `codex/` | Codex CLI, host-only - config template, hooks.json, guard hook, its own install scripts |
 
@@ -29,8 +29,6 @@ Everything installs by symlink from a single source of truth (this repo).
 - Optional, per feature:
   - Claude Code and/or the Codex CLI, for the `.claude/` and `codex/` config.
   - `sbx` (Docker Sandboxes) for the `sbx-claude` / `sbx-codex` wrappers.
-  - An authenticated `gh` plus the matching MCP connector (GitHub, Jira, or
-    Asana) for the triage/ship agent workflows.
 
 ## Install on a fresh Mac
 
@@ -90,25 +88,11 @@ this and want AI co-author trailers, or otherwise do not want this policy:
 
 - remove the `hooks` block from `.claude/settings.json` and the entry in
   `codex/hooks.json`;
-- also unset the co-author suppression in `.claude/settings.json` (and its kit
-  copy under `sbx/claude-kit/`): `attribution` blanking and
-  `includeCoAuthoredBy: false` strip trailers independently of the hooks;
+- also unset the attribution suppression in `.claude/settings.json` (and its
+  kit copy under `sbx/claude-kit/`): the blank `attribution.commit` and
+  `attribution.pr` and `attribution.sessionUrl: false` strip trailers and
+  session links independently of the hooks;
 - drop the matching lines from CLAUDE.md / AGENTS.md.
-
-## Agent workflows: triage and ship
-
-Both kits ship two multi-agent skills for working a tracker backlog:
-
-- `/triage` - takes items labeled `need-triage`, investigates the codebase, and
-  rewrites each into a fully specified ticket labeled `ready-for-dev`, checked
-  by a panel of reviewer agents.
-- `/ship` - takes `ready-for-dev` items, implements each in an isolated
-  worktree, gets the branch green, opens a draft PR, and runs an adversarial
-  reviewer panel before marking it ready.
-
-They work with GitHub, Jira, or Asana and need the matching MCP connector plus
-an authenticated `gh`; PR hosting is GitHub-only. The role definitions live
-under each kit's `agents/` and `skills/`, shared by both CLIs.
 
 ## Agent CLIs in Docker Sandboxes
 

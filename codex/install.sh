@@ -158,6 +158,7 @@ link "$ROOT/hooks.json" "$HOME/.codex/hooks.json"
 link "$ROOT/hooks" "$HOME/.codex/hooks"
 
 for agent in "$KIT"/.codex/agents/*.toml; do
+  [ -f "$agent" ] || continue
   link "$agent" "$HOME/.codex/agents/$(basename "$agent")"
 done
 
@@ -166,12 +167,14 @@ for skill in "$KIT"/.agents/skills/*; do
   link "$skill" "$HOME/.agents/skills/$(basename "$skill")"
 done
 
-# Skills read ../../references/trackers.md; a real ~/.agents/references makes
-# that resolve lexically too, not only through kernel symlink traversal.
-link "$KIT/.agents/references" "$HOME/.agents/references"
-
 prune_links "$HOME/.codex/agents" "$KIT/.codex/agents"
 prune_links "$HOME/.agents/skills" "$KIT/.agents/skills"
+
+# Earlier installs linked ~/.agents/references, which the kit no longer has.
+if [ -L "$HOME/.agents/references" ] && [ "$(readlink "$HOME/.agents/references")" = "$KIT/.agents/references" ]; then
+  run rm "$HOME/.agents/references"
+  printf '  prune   %s\n' "$HOME/.agents/references"
+fi
 
 # Codex ignores symlinked rule files.
 copy_rule "$KIT/.codex/rules/dotfiles.rules" "$HOME/.codex/rules/dotfiles.rules"

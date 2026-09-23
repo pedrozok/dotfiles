@@ -2,14 +2,12 @@
 # Canonical copies live under files/home; install.sh and codex/install.sh
 # symlink the host's ~/.codex and ~/.agents to them, so this tree is the
 # single source of truth. Everything in here must be a real file - symlinks
-# do not resolve inside the microVM. Skills read ../../references/trackers.md
-# relative to their own directory, which is why references/ sits next to
-# skills/ under .agents.
+# do not resolve inside the microVM.
 schemaVersion: "1"
 kind: mixin
 name: codex-kit
 displayName: Codex CLI config
-description: Personal Codex CLI AGENTS.md, agents, skills, and command rules.
+description: Personal Codex CLI AGENTS.md, skills, and command rules.
 
 # hooks.json and hooks/ are left out on purpose. The PreToolUse hook runs a
 # shell command with the agent's privileges, and an agent inside the sandbox
