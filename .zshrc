@@ -32,14 +32,6 @@ export PATH="$HOME/.local/bin:$PATH"
 # rupa-z
 [[ -r /opt/homebrew/etc/profile.d/z.sh ]] && . /opt/homebrew/etc/profile.d/z.sh
 
-# jdk 17 | jdk 21. Needs the JDK symlinks in /Library/Java/JavaVirtualMachines (see README).
-jdk() {
-  local home
-  home="$(/usr/libexec/java_home -F -v "$1")" || return 1
-  export JAVA_HOME="$home"
-  java -version
-}
-
 # withsecrets .env.op npm run dev. Secrets stay in memory; nothing starts if they cannot be read.
 # In WSL op is the Windows op.exe, which cannot start Linux programs, so it only resolves the values.
 withsecrets() {

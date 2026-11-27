@@ -10,7 +10,7 @@ Everything installs by symlink from a single source of truth (this repo).
 
 | Path | What |
 |---|---|
-| `.zshrc` | zsh - oh-my-zsh, nvm, pyenv, z, JDK switcher (per-machine config kept in `~/.zshrc.local`) |
+| `.zshrc` | zsh - oh-my-zsh, nvm, pyenv, z (per-machine config kept in `~/.zshrc.local`) |
 | `.tmux.conf` | tmux - vim-aware pane nav + mouse |
 | `.gitconfig` | git - pull.rebase, rerere, fetch.prune, SSH-signed commits through 1Password, fsck on fetch (identity and signing key kept in `~/.gitconfig.local`) |
 | `Brewfile` | Homebrew formulae and casks for a fresh Mac |
@@ -61,8 +61,7 @@ sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/Java
 ```
 
 oh-my-zsh and nvm come from git rather than their `curl | sh` installers. The
-JDK links let `/usr/libexec/java_home` and the `jdk` function find Homebrew's
-keg-only JDKs.
+JDK links let `/usr/libexec/java_home` find Homebrew's keg-only JDKs.
 
 Run bare in a terminal, `./install.sh` opens an interactive picker (arrow keys
 or j/k to move, space to toggle, `a` for all, enter to confirm, q to cancel)
