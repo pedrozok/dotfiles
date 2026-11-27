@@ -56,12 +56,9 @@ brew bundle --file ~/Dev/_tools/dotfiles/Brewfile
 git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh
 git clone https://github.com/nvm-sh/nvm.git ~/.nvm
 git -C ~/.nvm checkout "$(git -C ~/.nvm describe --abbrev=0 --tags --match 'v[0-9]*' "$(git -C ~/.nvm rev-list --tags --max-count=1)")"
-sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-21.jdk
-sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
 ```
 
-oh-my-zsh and nvm come from git rather than their `curl | sh` installers. The
-JDK links let `/usr/libexec/java_home` find Homebrew's keg-only JDKs.
+oh-my-zsh and nvm come from git rather than their `curl | sh` installers.
 
 Run bare in a terminal, `./install.sh` opens an interactive picker (arrow keys
 or j/k to move, space to toggle, `a` for all, enter to confirm, q to cancel)

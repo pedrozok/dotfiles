@@ -1,14 +1,10 @@
-tap "hashicorp/tap"
 tap "docker/tap"
 
 brew "aws-sam-cli"
 brew "awscli"
 brew "fd"
 brew "fzf"
-brew "hashicorp/tap/terraform", trusted: true
 brew "neovim"
-brew "openjdk@17"
-brew "openjdk@21"
 brew "pyenv"
 brew "rbenv"
 brew "ripgrep"
@@ -28,7 +24,6 @@ cask "ghostty"
 cask "visual-studio-code"
 cask "docker-desktop"
 cask "docker/tap/sbx", trusted: true
-cask "gcloud-cli"
 cask "discord"
 cask "claude"
 cask "claude-code"
