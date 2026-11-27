@@ -74,11 +74,11 @@ if sandbox_exists; then
   exec sbx run "$agent" --name "$name"
 fi
 
-# Share the host's Downloads and Desktop with the agent as read-only extra
-# workspaces, mounted at the same absolute paths inside the microVM. Only at
+# Extra read-only workspaces are opt-in (SBX_SHARE="$HOME/Downloads" sbx-claude):
+# everything mounted is readable by the agent and by any code it runs. Only at
 # creation: sbx refuses workspace arguments for a sandbox that already exists.
 set --
-for dir in "$HOME/Downloads" "$HOME/Desktop"; do
+for dir in ${SBX_SHARE:-}; do
   [ -d "$dir" ] || continue
   printf 'Sharing %s with the sandbox (read-only)\n' "$dir"
   set -- "$@" "$dir:ro"

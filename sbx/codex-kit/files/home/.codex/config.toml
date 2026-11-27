@@ -19,6 +19,14 @@ glob_scan_max_depth = 8
 "~/.npmrc" = "deny"
 "~/.netrc" = "deny"
 "~/.config/gh/hosts.yml" = "deny"
+"~/.azure" = "deny"
+"~/.config/gcloud" = "deny"
+"~/.config/op" = "deny"
+"~/.terraform.d" = "deny"
+"~/.git-credentials" = "deny"
+"~/.zsh_history" = "deny"
+"~/.zshrc.local" = "deny"
+"~/.local/state/nvim/undo" = "deny"
 
 [permissions.personal.filesystem.":workspace_roots"]
 "." = "write"

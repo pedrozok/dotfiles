@@ -12,7 +12,9 @@ Everything installs by symlink from a single source of truth (this repo).
 |---|---|
 | `.zshrc` | zsh - oh-my-zsh, nvm, pyenv, z, JDK switcher (per-machine config kept in `~/.zshrc.local`) |
 | `.tmux.conf` | tmux - vim-aware pane nav + mouse |
-| `.gitconfig` | git - pull.rebase, rerere, fetch.prune (identity kept in `~/.gitconfig.local`) |
+| `.gitconfig` | git - pull.rebase, rerere, fetch.prune, SSH-signed commits through 1Password, fsck on fetch (identity and signing key kept in `~/.gitconfig.local`) |
+| `Brewfile` | Homebrew formulae and casks for a fresh Mac |
+| `npm/npmrc` | npm install gates, added to `~/.npmrc` by the `npm` module |
 | `nvim/` | Neovim - LazyVim + tokyonight-storm |
 | `ghostty/config` | Ghostty terminal |
 | `.claude/` | Claude Code, host-only - settings.json, hooks |
@@ -20,7 +22,7 @@ Everything installs by symlink from a single source of truth (this repo).
 | `sbx/codex-kit/` | Codex CLI, shared - AGENTS.md, skills, command rules as a Docker Sandboxes kit |
 | `bin/` | `sbx-claude` and `sbx-codex`, wrappers that run an agent in a per-project Docker Sandbox |
 | `codex/` | Codex CLI, host-only - config template, hooks.json, guard hook, its own install scripts |
-| `opencode/opencode.json` | OpenCode - Ollama as a provider, with GLM and Kimi cloud models |
+| `opencode/opencode.json` | OpenCode - Ollama as a provider, with GLM and Kimi cloud models (prompts and code go to those providers; check client agreements before using them on a client repo) |
 
 ## Requirements
 
@@ -37,21 +39,34 @@ Everything installs by symlink from a single source of truth (this repo).
 
 ## Install on a fresh Mac
 
+Clone this repo anywhere (the path is remembered via symlinks), replacing
+`<you>` with your GitHub username here and below, and link the configs:
+
 ```sh
-# 1. Clone this repo anywhere (path is remembered via symlinks).
-#    Replace <you> with your GitHub username here and below.
 git clone git@github.com:<you>/dotfiles.git ~/Dev/_tools/dotfiles
 cd ~/Dev/_tools/dotfiles
-
-# 2. Install the CLI tools the configs use, however you manage packages:
-#    neovim tmux fzf fd ripgrep jq gh lazygit node tree-sitter-cli
-# 3. Link configs into place
 ./install.sh
 ```
 
+Then open a new terminal, so the Homebrew settings in `.zshrc` apply, and
+install the tools. Delete Brewfile lines you do not use first.
+
+```sh
+brew bundle --file ~/Dev/_tools/dotfiles/Brewfile
+git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh
+git clone https://github.com/nvm-sh/nvm.git ~/.nvm
+git -C ~/.nvm checkout "$(git -C ~/.nvm describe --abbrev=0 --tags --match 'v[0-9]*' "$(git -C ~/.nvm rev-list --tags --max-count=1)")"
+sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-21.jdk
+sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+```
+
+oh-my-zsh and nvm come from git rather than their `curl | sh` installers. The
+JDK links let `/usr/libexec/java_home` and the `jdk` function find Homebrew's
+keg-only JDKs.
+
 Run bare in a terminal, `./install.sh` opens an interactive picker (arrow keys
 or j/k to move, space to toggle, `a` for all, enter to confirm, q to cancel)
-over the modules: `zsh tmux git nvim ghostty claude codex opencode`. The `codex`
+over the modules: `zsh tmux git npm nvim ghostty claude codex opencode`. The `codex`
 module runs `codex/install.sh` for you, so there is no separate step. To skip
 the prompt:
 
@@ -64,13 +79,22 @@ the prompt:
 Piped or non-interactive (no TTY), `./install.sh` installs everything.
 
 On first run the `git` module prompts for name and email if `~/.gitconfig.local`
-isn't set (it's outside the repo - your identity never gets committed). Re-runs
-skip the prompt once the file exists.
+isn't set (it's outside the repo - your identity never gets committed), then for
+the public half of the SSH key that signs commits. `.gitconfig` signs every
+commit and tag with 1Password's `op-ssh-sign`, so `git commit` fails until that
+key is set. Re-runs skip the prompts once the values exist.
 
-The `zsh` module links `.zshrc`, which expects oh-my-zsh, nvm, pyenv, and z
-(from Homebrew) to be installed. It sources `~/.zshrc.local` last if it exists;
-put anything specific to one machine there (paths, tokens, work aliases). That
-file is outside the repo and never committed. The fzf shell hook
+The `npm` module adds `ignore-scripts`, `min-release-age` and `allow-git` to
+`~/.npmrc` and leaves any other line alone. It copies instead of linking because
+`npm login` writes tokens into that file. The release-age and git settings need
+npm 11.10 or later; an older npm ignores them silently.
+
+The `zsh` module links `.zshrc`, which loads oh-my-zsh, nvm, pyenv, rbenv and z
+when they are installed. It sources `~/.zshrc.local` last if it exists; put
+anything specific to one machine there (paths, work aliases). That file is
+outside the repo and never committed. Tokens go in neither file: they come from
+1Password at run time, through `op run` or the `withsecrets` function
+(`withsecrets .env.op npm run dev`). The fzf shell hook
 (`eval "$(fzf --zsh)"`) is not in `.zshrc`; add it if you want it.
 
 ## Updating
@@ -138,13 +162,15 @@ Notes:
   a persistence mechanism - and neither is Codex's `config.toml` (machine
   state). The claude kit ships a hooks-free `settings.json` so permissions,
   attribution blanking, and deny rules still apply inside sandboxes; keep it
-  in sync with the host copy in `.claude/`. Each kit's `spec.yaml` has the
+  in sync with the host copy in `.claude/`. The host copy also turns on Claude
+  Code's own sandbox, which the kit copy leaves out because the microVM is
+  already the boundary. Each kit's `spec.yaml` has the
   opt-in steps if you want hooks anyway.
-- The wrappers mount `~/Downloads` and `~/Desktop` (whichever exist on the
-  host) into the sandbox as read-only extra workspaces at the same paths, so
-  files there can be referenced in prompts. They're passed on every run; a
-  sandbox created before a folder existed needs an `sbx rm <agent>-<project>`
-  to pick it up.
+- The wrappers mount only the project. To give a new sandbox read-only access
+  to other folders, list them in `SBX_SHARE` (space-separated, no spaces in
+  the paths): `SBX_SHARE="$HOME/Downloads" sbx-claude`. Anything mounted is
+  readable by the agent and by any code it runs. Mounts are fixed at creation,
+  so an existing sandbox needs an `sbx rm <agent>-<project>` first.
 - Commits made inside a sandbox use the project repo's `.git/config`, which
   the sandbox shares through the workspace mount. The wrappers seed
   `user.name`/`user.email` into it from the host config on launch (skipped
