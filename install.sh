@@ -8,7 +8,7 @@
 #     ./install.sh tmux claude    install only the named modules
 #     ./install.sh --dry-run ...  print what would happen, change nothing
 #
-# Modules: zsh tmux git nvim ghostty claude codex opencode
+# Modules: zsh tmux git npm nvim ghostty claude codex opencode
 # With no TTY (piped/CI) and no module args, installs everything.
 
 # Re-exec under bash when started via `sh install.sh` on a non-bash /bin/sh:
@@ -22,11 +22,12 @@ DOTFILES="$(cd "$(dirname "$0")" && pwd -P)"
 
 # Module keys, one-line descriptions, and the install function for each. Keep
 # the three arrays index-aligned.
-KEY=(zsh tmux git nvim ghostty claude codex opencode)
+KEY=(zsh tmux git npm nvim ghostty claude codex opencode)
 DESC=(
   "zsh - oh-my-zsh, nvm, pyenv, z; per-machine in ~/.zshrc.local"
   "tmux - vim-aware pane nav + mouse"
-  "git - pull.rebase, rerere; identity in ~/.gitconfig.local"
+  "git - pull.rebase, rerere, signed commits; identity and signing key in ~/.gitconfig.local"
+  "npm - install gates added to ~/.npmrc (copied, never linked)"
   "nvim - LazyVim + tokyonight-storm"
   "ghostty - terminal config"
   "claude - Claude Code config, hooks, statusline, sbx-claude"
@@ -43,8 +44,8 @@ for arg in "$@"; do
     sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
     exit 0
     ;;
-  all) requested="zsh tmux git nvim ghostty claude codex opencode" ;;
-  zsh | tmux | git | nvim | ghostty | claude | codex | opencode) requested="$requested $arg" ;;
+  all) requested="zsh tmux git npm nvim ghostty claude codex opencode" ;;
+  zsh | tmux | git | npm | nvim | ghostty | claude | codex | opencode) requested="$requested $arg" ;;
   *)
     printf 'unknown argument: %s (modules: %s)\n' "$arg" "${KEY[*]}" >&2
     exit 2
@@ -120,6 +121,61 @@ setup_git_identity() {
   printf '  wrote   %s\n' "$local_path"
 }
 
+# .gitconfig turns on commit signing, so git commit fails until this key is set.
+setup_git_signing() {
+  local_path="$HOME/.gitconfig.local"
+  key=$(git config --file "$local_path" user.signingkey 2>/dev/null || true)
+
+  if [ -n "$key" ]; then
+    printf '  ok      %s (user.signingkey set)\n' "$local_path"
+    return
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    printf '  would prompt for the SSH signing key -> %s\n' "$local_path"
+    return
+  fi
+  if [ ! -t 0 ]; then
+    printf '  skip    %s (no TTY; set user.signingkey by hand, commits fail until then)\n' "$local_path"
+    return
+  fi
+
+  printf '\nCommit signing key missing - paste the public key from its 1Password item\n'
+  printf '  Key:   '
+  read -r key
+  case "$key" in
+  ssh-* | sk-ssh-*) ;;
+  *)
+    printf '  skip    %s (not an SSH public key; commits fail until user.signingkey is set)\n' "$local_path"
+    return
+    ;;
+  esac
+
+  git config --file "$local_path" user.signingkey "$key"
+  printf '  wrote   %s\n' "$local_path"
+}
+
+# Copied, never linked: npm login writes tokens into ~/.npmrc, and through a
+# link they would land in this repo.
+mod_npm() {
+  rc="$HOME/.npmrc"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    key=${line%%=*}
+    have=$( [ -f "$rc" ] && grep -E "^$key[[:space:]]*=" "$rc" | tail -1 || true)
+    if [ "$have" = "$line" ]; then
+      printf '  ok      %s %s\n' "$rc" "$line"
+    elif [ -n "$have" ]; then
+      printf '  differs %s has %s, repo wants %s (left alone)\n' "$rc" "$have" "$line"
+    else
+      printf '  add     %s %s\n' "$rc" "$line"
+      if [ "$DRY_RUN" -eq 0 ]; then
+        [ -s "$rc" ] && [ -n "$(tail -c1 "$rc")" ] && printf '\n' >>"$rc"
+        printf '%s\n' "$line" >>"$rc"
+      fi
+    fi
+  done <"$DOTFILES/npm/npmrc"
+}
+
 mod_zsh() {
   link "$DOTFILES/.zshrc" "$HOME/.zshrc"
 }
@@ -131,6 +187,7 @@ mod_tmux() {
 mod_git() {
   link "$DOTFILES/.gitconfig" "$HOME/.gitconfig"
   setup_git_identity
+  setup_git_signing
 }
 
 mod_nvim() {
@@ -300,7 +357,7 @@ elif [ -t 0 ] && [ -t 1 ] && [ -n "${BASH_VERSION:-}" ]; then
     exit 0
   fi
 else
-  selected="zsh tmux git nvim ghostty claude codex opencode"
+  selected="zsh tmux git npm nvim ghostty claude codex opencode"
 fi
 
 # Normalize whitespace for the report.

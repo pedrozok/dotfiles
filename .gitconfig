@@ -8,5 +8,19 @@
 	prune = true
 [rerere]
 	enabled = true
+[transfer]
+	fsckObjects = true
+[fetch]
+	fsckObjects = true
+[safe]
+	bareRepository = explicit
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
 [include]
 	path = ~/.gitconfig.local
